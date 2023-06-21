@@ -87,3 +87,66 @@ matplotlib.use("TkAgg")
 onemliler = tf[tf["Counts"] > 50]
 onemliler.plot.bar(x="Words", y="Counts");
 plt.show()
+
+# Wordcloud
+
+import re
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from os import path
+from PIL import Image
+from wordcloud import WordCloud
+from wordcloud import STOPWORDS
+from wordcloud import ImageColorGenerator
+from nltk.corpus import stopwords
+from textblob import Word
+
+data = pd.read_csv("train.tsv", sep="\t")
+
+text = data["Phrase"][0]
+wordcloud = WordCloud(max_font_size=50, max_words=100, background_color="white").generate(text)
+plt.figure()
+plt.imshow(wordcloud, interpolation="bilinear")
+plt.axis("off")
+plt.show()
+
+butunMetinler = " ".join(i for i in data["Phrase"])
+butunMetinler
+
+
+butunMetinler = re.sub("[^\w\s\d]", "", butunMetinler)
+# re.sub("\d", "", butunMetinler)
+sw = stopwords.words("english")
+butunMetinler = " ".join(x for x in butunMetinler.split() if x not in sw)
+butunMetinler = " ".join([Word(word).lemmatize() for word in butunMetinler.split()])
+
+wordcloud = WordCloud(max_font_size=50, max_words=75, background_color="white").generate(butunMetinler)
+plt.figure()
+plt.imshow(wordcloud, interpolation="bilinear")
+plt.axis("off")
+plt.show()
+
+# Sablon icinde word cloud
+
+import numpy as np
+sablon = np.array(Image.open(r"C:\Users\kdrcn\OneDrive\Masaüstü\Görseller\cloud.jpeg"))
+
+wordcloud = WordCloud(max_words=2000,
+                      background_color="white",
+                      mask=sablon,
+                      contour_width=3,
+                      contour_color="steelblue").generate(butunMetinler)
+plt.figure()
+plt.imshow(wordcloud, interpolation="bilinear")
+plt.axis("off")
+plt.show()
+
+
+
+
+
+
+
+
+
