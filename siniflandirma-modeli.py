@@ -82,137 +82,95 @@ LE = preprocessing.LabelEncoder()
 y_train = LE.fit_transform(y_train)
 y_test = LE.fit_transform(y_test)
 
+def VectorMaker(Vectorizer, X_train, X_test):
+    Vectorizer.fit(X_train)
+    X_train_Vectorized = Vectorizer.transform(X_train)
+    X_test_Vectorized = Vectorizer.transform(X_test)
+    return X_train_Vectorized, X_test_Vectorized
+
 # Count Vectors
+# CV = CountVectorizer()
+# CV.fit(X_train)
+# X_train_cv = CV.transform(X_train)
+# X_test_cv = CV.transform(X_test)
+# CV.get_feature_names_out()[0:10]
+# X_train_cv.toarray()
 CV = CountVectorizer()
-CV.fit(X_train)
-X_train_cv = CV.transform(X_train)
-X_test_cv = CV.transform(X_test)
+X_train_cv, X_test_cv = VectorMaker(CV, X_train, X_test)
 
-CV.get_feature_names_out()[0:10]
-X_train_cv.toarray()
+# TF-IDF | Word Level
+TFIDF_WORDS = TfidfVectorizer()
+X_train_tfidf_Vec_word, X_test_tfidf_Vec_word = VectorMaker(TFIDF_WORDS, X_train, X_test)
 
-# TF-IDF
-# word level
-tfidf_Vec_word = TfidfVectorizer()
-tfidf_Vec_word.fit(X_train)
-X_train_tfidf_Vec_word = tfidf_Vec_word.transform(X_train)
-X_test_tfidf_Vec_word = tfidf_Vec_word.transform(X_test)
+# TF-IDF | N-Gram Level
+TFIDF_NGRAMS = TfidfVectorizer(ngram_range=(2, 3))
+X_train_tfidf_Vec_ngrams, X_test_tfidf_Vec_ngrams = VectorMaker(TFIDF_NGRAMS, X_train, X_test)
 
-tfidf_Vec_word.get_feature_names_out()[0:5]
-X_train_tfidf_Vec_word.toarray()
-
-# n-gram level
-tfidf_Vec_ngrams = TfidfVectorizer(ngram_range=(2, 3))
-tfidf_Vec_ngrams.fit(X_train)
-X_train_tfidf_Vec_ngrams = tfidf_Vec_ngrams.transform(X_train)
-X_test_tfidf_Vec_ngrams = tfidf_Vec_ngrams.transform(X_test)
-
-tfidf_Vec_ngrams.get_feature_names_out()[0:10]
-
-# character level
-tfidf_Vec_chars = TfidfVectorizer(analyzer="char", ngram_range=(2, 3))
-tfidf_Vec_chars.fit(X_train)
-X_train_tfidf_Vec_chars = tfidf_Vec_chars.transform(X_train)
-X_test_tfidf_Vec_chars = tfidf_Vec_chars.transform(X_test)
+# TF-IDF | Character Level
+TFIDF_CHARS = TfidfVectorizer(analyzer="char", ngram_range=(2, 3))
+X_train_tfidf_Vec_chars, X_test_tfidf_Vec_chars = VectorMaker(TFIDF_CHARS, X_train, X_test)
 
 # Makine Ogrenmesi ile Sentiment Siniflandirma
+
+def FitAndCrossVal(Estimator, X_train, X_test, y_train, y_test):
+    Model = Estimator.fit(X_train, y_train)
+    accuracy = model_selection.cross_val_score(Model, X_test, y_test, cv=10).mean()
+    print("Dogruluk orani:", accuracy)
+
 # Lojistik Regresyon
 # Count Vector
 LR = linear_model.LogisticRegression()
-LR_model = LR.fit(X_train_cv, y_train)
-accuracy = model_selection.cross_val_score(LR_model,
-                                           X_test_cv,
-                                           y_test,
-                                           cv=10).mean()
-print("Count Vector dogruluk orani:", accuracy)
+FitAndCrossVal(LR, X_train_cv, X_test_cv, y_train, y_test)
 # 0.8398012552301255
 
 # TF-IDF Word Level
 LR = linear_model.LogisticRegression()
-LR_model = LR.fit(X_train_tfidf_Vec_word, y_train)
-accuracy = model_selection.cross_val_score(LR_model,
-                                           X_test_tfidf_Vec_word,
-                                           y_test,
-                                           cv=10).mean()
-print("TF-IDF Word Level dogruluk orani:", accuracy)
+FitAndCrossVal(LR, X_train_tfidf_Vec_word, X_test_tfidf_Vec_word, y_train, y_test)
 # 0.8353556485355649
 
 # TF-IDF N-Grams Level
 LR = linear_model.LogisticRegression()
-LR_model = LR.fit(X_train_tfidf_Vec_ngrams, y_train)
-accuracy = model_selection.cross_val_score(LR_model,
-                                           X_test_tfidf_Vec_ngrams,
-                                           y_test,
-                                           cv=10).mean()
-print("TF-IDF N-Grams Level dogruluk orani:", accuracy)
+FitAndCrossVal(LR, X_train_tfidf_Vec_ngrams, X_test_tfidf_Vec_ngrams, y_train, y_test)
 # 0.7463912133891213
 
 # TF-IDF Character Level
 LR = linear_model.LogisticRegression()
-LR_model = LR.fit(X_train_tfidf_Vec_chars, y_train)
-accuracy = model_selection.cross_val_score(LR_model,
-                                           X_test_tfidf_Vec_chars,
-                                           y_test,
-                                           cv=10).mean()
-print("TF-IDF Character Level dogruluk orani:", accuracy)
+FitAndCrossVal(LR, X_train_tfidf_Vec_chars, X_test_tfidf_Vec_chars, y_train, y_test)
 # 0.7802301255230126
 
 # Naive Bayes
 # Count Vector
 NB = naive_bayes.MultinomialNB()
-NB_model = NB.fit(X_train_cv, y_train)
-accuracy = model_selection.cross_val_score(NB_model,
-                                           X_test_cv,
-                                           y_test,
-                                           cv=10).mean()
-print("Count Vector dogruluk orani:", accuracy)
+FitAndCrossVal(NB, X_train_cv, X_test_cv, y_train, y_test)
 # 0.8332112970711296
 
 # TF-IDF Word Level
 NB = naive_bayes.MultinomialNB()
-NB_model = NB.fit(X_train_tfidf_Vec_word, y_train)
-accuracy = model_selection.cross_val_score(NB_model,
-                                           X_test_tfidf_Vec_word,
-                                           y_test,
-                                           cv=10).mean()
-print("TF-IDF Word Level dogruluk orani:", accuracy)
+FitAndCrossVal(NB, X_train_tfidf_Vec_word, X_test_tfidf_Vec_word, y_train, y_test)
 # 0.835041841004184
 
 # TF-IDF N-Grams Level
 NB = naive_bayes.MultinomialNB()
-NB_model = NB.fit(X_train_tfidf_Vec_ngrams, y_train)
-accuracy = model_selection.cross_val_score(NB_model,
-                                           X_test_tfidf_Vec_ngrams,
-                                           y_test,
-                                           cv=10).mean()
-print("TF-IDF N-Grams Level dogruluk orani:", accuracy)
+FitAndCrossVal(NB, X_train_tfidf_Vec_ngrams, X_test_tfidf_Vec_ngrams, y_train, y_test)
 # 0.7685146443514643
 
 # TF-IDF Word Level
 NB = naive_bayes.MultinomialNB()
-NB_model = NB.fit(X_train_tfidf_Vec_chars, y_train)
-accuracy = model_selection.cross_val_score(NB_model,
-                                           X_test_tfidf_Vec_chars,
-                                           y_test,
-                                           cv=10).mean()
-print("TF-IDF Word Level dogruluk orani:", accuracy)
+FitAndCrossVal(NB, X_train_tfidf_Vec_chars, X_test_tfidf_Vec_chars, y_train, y_test)
 # 0.7557008368200837
 
 # Random Forest
 # Count Vector
 RF = ensemble.RandomForestClassifier()
-RF_model = RF.fit(X_train_cv, y_train)
-accuracy = model_selection.cross_val_score(RF_model,
-                                           X_test_cv,
-                                           y_test,
-                                           cv=10).mean()
-print("Count Vector dogruluk orani:", accuracy)
+FitAndCrossVal(RF, X_train_cv, X_test_cv, y_train, y_test)
 # 0.8217573221757322
 
 # Tahmin
 CV = CountVectorizer()
 CV.fit(X_train)
 x = CV.transform(pd.Series("this film is very nice and good i like it"))
+LR = linear_model.LogisticRegression()
+LR_model = LR.fit(X_train_cv)
 LR_model.predict(x)
 
 x = CV.transform(pd.Series("no not good look at that shit very bad"))
