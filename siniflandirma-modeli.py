@@ -35,6 +35,7 @@ pd.set_option("display.expand_frame_repr",  False)
 data = pd.read_csv("train.tsv", sep="\t")
 data.head()
 
+#region Preprocessing
 data["Sentiment"].replace(0, value="Negative", inplace=True)
 data["Sentiment"].replace(1, value="Negative", inplace=True)
 # data["Sentiment"].replace(2, value="Negative")
@@ -46,7 +47,6 @@ data = data.reset_index(drop=True)
 data["Sentiment"].value_counts()
 
 df = data[["Phrase", "Sentiment"]]
-df.head()
 
 # Kucuk/Buyuk Harf Donusumu
 df["Phrase"] = df.loc[:, "Phrase"].str.lower()
@@ -63,6 +63,7 @@ rares = pd.Series(" ".join(df["Phrase"]).split()).value_counts()[-1000:]
 df["Phrase"] = df["Phrase"].apply(lambda x: " ".join(x for x in x.split() if x not in rares))
 # Lemmatization
 df["Phrase"] = df["Phrase"].apply(lambda x: " ".join([Word(word).lemmatize() for word in x.split()]))
+#endregion
 
 df.head()
 
@@ -83,6 +84,12 @@ y_train = LE.fit_transform(y_train)
 y_test = LE.fit_transform(y_test)
 
 def VectorMaker(Vectorizer, X_train, X_test):
+    """
+    :param Vectorizer: Liste seklinde verilen kelimeleri vektor haline getirecek vectorize nesnesi.
+    :param X_train: Egitim seti
+    :param X_test: Test seti
+    :return: Vektorize olmus veri setlerini geri dondurur.
+    """
     Vectorizer.fit(X_train)
     X_train_Vectorized = Vectorizer.transform(X_train)
     X_test_Vectorized = Vectorizer.transform(X_test)
@@ -113,6 +120,16 @@ X_train_tfidf_Vec_chars, X_test_tfidf_Vec_chars = VectorMaker(TFIDF_CHARS, X_tra
 # Makine Ogrenmesi ile Sentiment Siniflandirma
 
 def FitAndCrossVal(Estimator, X_train, X_test, y_train, y_test):
+    """
+    Egitim setinin bagimli ve bagimsiz degiskenleriyle bir model kurar.
+    Test setini kullanarak capraz dogrulama yapip, modelin basarisini yazdirir.
+    :param Estimator: Tahmin edecel modelin nesnesi.
+    :param X_train:
+    :param X_test:
+    :param y_train:
+    :param y_test:
+    :return:
+    """
     Model = Estimator.fit(X_train, y_train)
     accuracy = model_selection.cross_val_score(Model, X_test, y_test, cv=10).mean()
     print("Dogruluk orani:", accuracy)
